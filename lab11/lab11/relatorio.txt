@@ -1,0 +1,172 @@
+Bruna Paracat 
+1611896
+
+Conrado Costa 
+1710234
+
+QUESTÃO 1) Use o programa listaarquivo.c para imprimir o numero de inode, o tamanho (em bytes) e a idade em dias de cada arquivo do diretório corrente. Lembre-se que stat() espera o path completo do arquivo 
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ARQUIVO.C
+
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h> 
+#include <sys/dir.h> 
+#include <sys/param.h>
+#include <sys/stat.h>
+#include <string.h>
+#include <time.h>
+
+int file_select(struct direct   *entry) 
+{ 
+    if ((strcmp(entry->d_name, ".") == 0) || (strcmp(entry->d_name, "..") == 0))  
+          return (0); 
+    else 
+          return (1); 
+} 
+
+int main(){
+	char path[MAXPATHLEN];
+	//STAT* s = (STAT*)malloc(sizeof(STAT));
+	struct direct** files;
+	struct stat* aux;
+	int file_select();
+	int count;
+	int i;
+	
+	if (getwd(path) == NULL) {printf("deu ruim"); exit(-1);}
+	
+	printf("PATH ATUAL: %s\n", path);
+	
+	count = scandir(path, &files, file_select, alphasort); 
+	
+	printf("numero de arquivos: %i\n\n", count);
+	
+	/*for (i = 0; i < count; i++){
+		printf("Nome do arquivo: <%s>\n", files[i]->d_name);
+	}*/
+	
+	for(i = 0; i < count; i++){
+		char complete_path[256] = "";
+		strcat (complete_path, path);
+		strcat (complete_path, "/");
+		strcat (complete_path, files[i]->d_name);
+
+		stat (complete_path , aux);
+		
+		printf("%s\t%i\tsize: %i\tage: %i seconds\n", files[i]->d_name, aux->st_ino, aux->st_size, time(NULL) - aux->st_ctime);
+	}
+}
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+a.TXT
+asdadsadaspodfj pdsnf dfpib iorb ] ÓWEJ ER DFM 
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+COMPILAÇÃO E EXECUÇÃO
+$ gcc 
+-
+o exercicio exercicio1.c
+$ ./exercicio
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+RESULTADO:
+
+PATH ATUAL: /nethome/home/ecp/e1710234/Desktop/INF1019/lab11
+numero de arquivos: 3
+
+a		22675555	size: 49		age: 11 seconds
+ex1		22675474	size: 9016	age: 53 seconds
+ex1.c	22679113	size: 2477	age: 54 seconds
+
+-----------------------------------------------------
+CONCLUSÃO
+
+Com a função getwd(), obtemos o path atual da pasta de trabalho.
+Com a função scandir(), obtemos as informações dos arquivos neste path, bem como a quantidade deles.
+Depois, juntamos o path com o nome de cada arquivo e, com a função stat, conseguimos informações de status de cada arquivo (INODE, SIZE e AGE)
+
+
+QUESTÃO 2) Modifique o programa anterior para mostrar o número de links que cada arquivo possui. Depois, no diretório corrente, execute o o comando da shell
+ln <arquivo> <nomeLink> e veja o que mudou na saída de seu programa
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ARQUIVO.C
+
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h> 
+#include <sys/dir.h> 
+#include <sys/param.h>
+#include <sys/stat.h>
+#include <string.h>
+#include <time.h>
+
+int file_select(struct direct   *entry) 
+{ 
+    if ((strcmp(entry->d_name, ".") == 0) || (strcmp(entry->d_name, "..") == 0))  
+          return (0); 
+    else 
+          return (1); 
+} 
+
+int main(){
+	char path[MAXPATHLEN];
+	//STAT* s = (STAT*)malloc(sizeof(STAT));
+	struct direct** files;
+	struct stat* aux;
+	int file_select();
+	int count;
+	int i;
+	
+	if (getwd(path) == NULL) {printf("deu ruim"); exit(-1);}
+	
+	printf("PATH ATUAL: %s\n", path);
+	
+	count = scandir(path, &files, file_select, alphasort); 
+	
+	printf("numero de arquivos: %i\n\n", count);
+	
+	/*for (i = 0; i < count; i++){
+		printf("Nome do arquivo: <%s>\n", files[i]->d_name);
+	}*/
+	
+	for(i = 0; i < count; i++){
+		char complete_path[256] = "";
+		strcat (complete_path, path);
+		strcat (complete_path, "/");
+		strcat (complete_path, files[i]->d_name);
+
+		stat (complete_path , aux);
+		
+		printf("%s\t%i\tsize: %i\tage: %i seconds \t links:%d\n", files[i]->d_name, aux->st_ino, aux->st_size, time(NULL) - aux->st_ctime, aux->st_nlink);
+	}
+}
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+a.TXT
+hello mundo 
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+COMPILAÇÃO E EXECUÇÃO
+$ ln a.txt oi
+$ gcc exercicio.c -o exercicio
+$ ./exercicio
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+RESULTADO:
+
+oi	6905270		size: 2291	age: 5 seconds 	 links:2
+a.txt	6907559		size: 11		age: 5 seconds 	 links:1
+main 6907575		size: 9072	age: 2 seconds 	 links:1
+main.c6907497	size: 1338	age: 237 seconds 	 links:1
+
+-----------------------------------------------------
+CONCLUSÃO
+Após utilizarmos o comando "ln", foi criada uma nova entrada no diretório que é uma cópia do arquivo a.txt. Como explica no manual do linux, o comando "ln" é útil para manter múltiplas cópias de um arquivos em vários locais ao mesmo tempo sem utilizar muita memória pois o link aponta para o arquivo original. 
+

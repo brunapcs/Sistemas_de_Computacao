@@ -1,0 +1,3 @@
+FI-REQ,/primeiro/oie.txt,9,W,W 
+WR-REQ,/primeiro/oie.txt,9,payload,10,30,2222,W,W
+DC-REQ,/trab2,10,dirname,10,2023,W,W
